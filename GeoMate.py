@@ -23,6 +23,7 @@ driver.minimize_window()
 '''if os.path.exists("outPut.txt"):
   os.remove("outPut.txt")
 fichero = open('outPut.txt', 'a',  encoding="UTF-8")'''
+
 if os.path.exists("outPut.csv"):
   os.remove("outPut.csv")
 fichero = open('outPut.csv', 'w',  encoding="UTF-8", newline='')
@@ -54,8 +55,9 @@ with open('Geolocalizacion-automatica.csv', encoding="utf-8") as csv_file:
         driver.get("https://www.google.es/maps/place/"+row[0])
 
         if i < 1: 
-            #driver.find_element(By.CSS_SELECTOR, ".basebutton[value='Acepto']").click()
-            time.sleep(10)
+            #driver.find_element(By.CSS_SELECTOR, "Acepto").click()VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc
+            driver.execute_script("document.getElementsByClassName('VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc')[3].click()")
+            #time.sleep(10)
 
         Url_With_Coordinates.append(driver.find_element(By.CSS_SELECTOR, 'meta[itemprop=image]').get_attribute('content'))
 
