@@ -117,7 +117,7 @@ with open('csv_latitud_longitud_null.csv', encoding="utf-8") as csv_file:
         if i < 1:
             outRow = firstRow
         else:
-            outRow = [row[1],url, latitud + ' ' + longitud]
+            outRow = [row[1],url, latitud, longitud]
 
         writer.writerow(outRow)
 
