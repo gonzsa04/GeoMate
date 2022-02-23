@@ -15,7 +15,7 @@ options = Options()
 serv = Service(r"C:\Program Files\Google\Chrome\Application\chromedriver.exe")
 prefs = {'profile.default_content_setting_values': {'images':2}}
 
-#options.add_experimental_option('prefs', prefs)
+options.add_experimental_option('prefs', prefs)
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 options.binary_location = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 
@@ -45,7 +45,7 @@ with open('csv_latitud_longitud_null.csv', encoding="utf-8") as csv_file:
 
     for row in csv_reader:
         if i < 1:
-            firstRow = [row[1],row[2],"GO_geolocation__c"]
+            firstRow = [row[1],row[2],"GO_latitud__c", "GO_longitud__c"]
         else:
             row[2] = row[2].lower()
             row[2] = row[2].replace(' ', '+')
@@ -69,46 +69,53 @@ with open('csv_latitud_longitud_null.csv', encoding="utf-8") as csv_file:
                 driver.get("https://www.google.es/maps/place/")
                 driver.execute_script("document.getElementsByClassName('VfPpkd-LgbsSe VfPpkd-LgbsSe-OWXEXe-k8QpJ VfPpkd-LgbsSe-OWXEXe-dgl2Hf nCP5yc AjY5Oe DuMIQc')[3].click()")
                 firstTime = False
-                time.sleep(3)
-                
-                ogLatitud, ogLongitud, a = driver.current_url[driver.current_url.find('@') + 1: driver.current_url.find("z/data")].split(',')  
 
+                time.sleep(5)
+                
+                content = driver.find_element(By.XPATH, "//meta[@itemprop='image']").get_attribute('content')
+                ogLatitud, ogLongitud = latitud, longitud = content.split('?center=')[1].split('&zoom=')[0].split('%2C')
                 
             driver.get("https://www.google.es/maps/place/"+row[2])
 
-            Url_With_Coordinates.append(driver.find_element(By.CSS_SELECTOR, 'meta[itemprop=image]').get_attribute('content'))
-
-            url = ''
             latitud = '0.0'
             longitud = '0.0'
-            problems = ''
+            problems = False
             
-
             try:
                 if row[2] != '':
-                    latitud, longitud = Url_With_Coordinates[i][Url_With_Coordinates[i].rfind('=') + 1:-1].split(',')
-
-                url = driver.current_url        
-            except:
-                try:
-                    element = WebDriverWait(driver, 0).until(EC.element_to_be_clickable((By.ID, "searchbox-searchbutton")))
+                    element = WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.ID, "searchbox-searchbutton")))
                     element.click()
-                    latitud, longitud, a = driver.current_url[driver.current_url.find('@') + 1: driver.current_url.find("z/data")].split(',')   
 
-                    url = driver.current_url
-                except:        
-                    try:
-                        time.sleep(3)
-                        latitud, longitud, a = driver.current_url[driver.current_url.find('@') + 1: driver.current_url.find("z/data")].split(',')   
-                        url = driver.current_url
-                    except:
-                        problems = 'Hubo problemas con esta direccion'
-                        errors+=1
-                        url = driver.current_url
-            
-            if problems != '':
+                    time.sleep(3)
+
+                    driver.get(driver.current_url)
+
+                    content = driver.find_element(By.XPATH, "//meta[@itemprop='image']").get_attribute('content')
+                    print(content)
+                    latitud, longitud = content[content.rfind('=') + 1:-1].split(',')
+
+            except:        
+                try:
+                    latitud, longitud = content.split('?center=')[1].split('&zoom=')[0].split('%2C')
+                except:
+                    problems = True
+                    errors+=1
+
+            try:
+                if (latitud == '0.0' and longitud == '0.0' and row[2] != '') or problems:
+                    latitud, longitud, a = driver.current_url[driver.current_url.find('@') + 1: driver.current_url.find("y/data")].split(',')  
+                    if problems:
+                        problems = False
+                        errors-=1
+            except:
+                if problems == False:
+                    problems = True
+                    errors+=1
+
+            if problems:
                 latitud = '1.0'
                 longitud = '1.0'
+                print('Error in url: ' + driver.current_url)
             else:
                 if latitud == ogLatitud and longitud == ogLongitud:
                     latitud = '0.0'
@@ -117,7 +124,7 @@ with open('csv_latitud_longitud_null.csv', encoding="utf-8") as csv_file:
         if i < 1:
             outRow = firstRow
         else:
-            outRow = [row[1],url, latitud, longitud]
+            outRow = [row[1],driver.current_url, latitud, longitud]
 
         writer.writerow(outRow)
 
@@ -126,9 +133,9 @@ with open('csv_latitud_longitud_null.csv', encoding="utf-8") as csv_file:
         
         i+=1
 
-        #if i > 10: break
+        #if i > 20: break
 
     print('\n' + 'numero de errores: ' + str(errors))
     
-driver.close()
-driver.quit()
+#driver.close()
+#driver.quit()
